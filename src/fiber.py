@@ -1,9 +1,19 @@
+import numpy as np
+
 # info about fiber sensor
+class FiberState:
+    NONE = 0
+    GAS = 1
+    WATER = 2
+    WAVE = 3
+    BUBBLE = 4
+    SLUG = 5
+    
 class Fiber:
     def _init_(self, x, y) -> None:
         self.x = x
         self.y = y
-        self.sequence = list()
+        self.sequence = list
 
     def set_signal_sequence(self, normalization_seq):
         self.sequence = normalization_seq

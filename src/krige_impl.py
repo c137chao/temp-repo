@@ -270,7 +270,7 @@ class Kriging:
                 if r > 125**2:
                     zvalues[x, y] = 0.5
                 else:
-                    if zvalues[x, y] > 0.4:
+                    if zvalues[x, y] > 0.6:
                         zvalues[x, y] = 1
                     else:
                         zvalues[x, y] = 0
