@@ -51,23 +51,23 @@ def listen_port(port, buffer):
 
 points = np.array(
     [
-       [85, 35, 0],
-       [165, 55, 0],
-       [65, 65, 0],
-       [105, 75, 0],
-       [145, 85, 0], 
-       [185, 95, 0], 
-       [45, 105, 0], 
-       [85, 115, 0], 
-       [125, 125, 0], 
-       [165, 135, 0], 
-       [205, 145, 0],
-       [65, 155, 0], 
-       [105, 165, 0], 
-       [145, 175, 0], 
-       [185, 185, 0], 
-       [85, 195, 0], 
        [165, 215, 0],
+       [85, 195, 0], 
+       [185, 185, 0], 
+       [145, 175, 0], 
+       [105, 165, 0], 
+       [65, 155, 0], 
+       [205, 145, 0],
+       [165, 135, 0], 
+    #    [125, 125, 0], 
+       [85, 115, 0], 
+       [45, 105, 0], 
+       [185, 95, 0], 
+       [145, 85, 0], 
+       [105, 75, 0],
+       [65, 65, 0],
+       [165, 55, 0],
+       [85, 35, 0],
     ])
 
 def imaging(client_socket_1, client_socket_2):
@@ -108,37 +108,38 @@ demo_seqs = np.array(
   ]
 )
 
+slug_seqs = np.array(
+{
+    # ...
+}
+)
+
 
 def demo_image(seqs):
    x_range = 259
    y_range = 250
    range_step = 1
-   plt.ion()
-   fig, (ax1) = plt.subplots(1)
    gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
    gridy = np.arange(0.0, y_range, range_step)
-#    scatter = ax1.scatter([], [])
 
+   fig = plt.figure('frame')
 
+   mtx = np.zeros((250, 250))
+   import liner_image
    
    for i in range(seqs.shape[1]):
-      for j in reversed(range(16)):
+      for j in (range(16)):
         points[j][2] = seqs[j][i]
-
-      plt.clf()
-      #   print(points)
-      kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='linear')
-      k2d1_1, _ = kg.execute('grid', gridx, gridy)
-
-      ax1.imshow(k2d1_1, origin="lower", cmap='bwr')
-      ax1.set_title("kriging image")
-    #   plt.tight_layout()
-    #   plt.scatter(points[:, 0], points[:, 1], c = points[:, 2])
-    #   scatter.set_array(k2d1_1)
-      plt.imshow(k2d1_1, origin="lower", cmap='bwr')
-    #   plt.legend()
-      plt.show()
-      plt.ioff()
+    #   print(points)
+      kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='linear', nlags=10)
+      mtx, _ = kg.execute('grid', gridx, gridy)
+    #   liner_image.imagine_layer(points, 125, mtx)
+      ax1 = fig.add_subplot(1, 1, 1)
+      ax1.imshow(mtx, origin="lower", cmap='bwr')
+    #   ax1.scatter(points[:,0], points[:,1], c=points[:,2])
+    # #   plt.show()
+      plt.pause(0.01)
+      fig.clf()
 
  
 def main(): 

@@ -1,6 +1,39 @@
 import cv2
 import math
 
+def dist(x1, y1, x2, y2):
+    return abs(y1-y2) + abs(x1-x2)
+
+def custom_dist(XA, XB):
+    XA = np.asarray(XA)
+    XB = np.asarray(XB)
+
+    sA = XA.shape
+    sB = XB.shape
+
+    if len(sA) != 2:
+        raise ValueError('XA must be a 2-dimensional array.')
+    if len(sB) != 2:
+        raise ValueError('XB must be a 2-dimensional array.')
+    if sA[1] != sB[1]:
+        raise ValueError('XA and XB must have the same number of columns '
+                         '(i.e. feature dimension.)')
+
+    mA = sA[0]
+    mB = sB[0]
+    n = sA[1]
+    ans = np.zeros((mA, mB))
+
+    print("mA:", mA, ", mB:", mB, ", shape:", ans.shape)
+
+    for i in range(mA):
+        for j in range(mB):
+            ans[i][j] = dist(XA[i][0], XA[i][1], XB[j][0], XB[j][1])
+
+    return ans
+
+
+
 def in_cycle(x, y, r):
     return math.pow(x-125, 2) + math.pow(y-125, 2) <= r*r
 

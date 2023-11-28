@@ -58,9 +58,9 @@ def spherical_variogram_model(m, d):
 
 # shut flow
 def slug_variogram_model(m, d):
-    """ custom variogram function for slug flow"""
-    range_ = float(m[0])
-    nugget = float(m[1])
+    psill = float(m[0])
+    range_ = float(m[1])
+    nugget = float(m[2])
 
     # TODO
     return None
@@ -170,7 +170,7 @@ class Kriging:
     def _get_kriging_matrix(self, n):
         if self.coordinates_type == "euclidean":
             xy = np.concatenate(
-                (self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]), axis=1
+                (self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]/1.5), axis=1
             )
             d = cdist(xy, xy, "euclidean")
         elif self.coordinates_type == "geographic":
@@ -217,15 +217,13 @@ class Kriging:
         ypts = grid_y.flatten()
 
         if self.coordinates_type == "euclidean":
-            xy_data = np.concatenate(
-                (self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]), axis=1
-            )
-            xy_points = np.concatenate(
-                (xpts[:, np.newaxis], ypts[:, np.newaxis]), axis=1
-            )
+            xy_data = np.concatenate((self.X_ADJUSTED[:, np.newaxis]/2, self.Y_ADJUSTED[:, np.newaxis]), axis=1)
+            xy_points = np.concatenate((xpts[:, np.newaxis]/2, ypts[:, np.newaxis]), axis=1)
 
         if self.coordinates_type == "euclidean":
+            # print("all points:", xy_points.shape, ", fiber points:", xy_data.shape)
             bd = cdist(xy_points, xy_data, "euclidean")
+            # bd = util.custom_dist(xy_points, xy_data)
         elif self.coordinates_type == "geographic":
             bd = util.great_circle_distance(
                 xpts[:, np.newaxis],
@@ -263,17 +261,17 @@ class Kriging:
         zvalues = zvalues.reshape((ny, nx))
         sigmasq = sigmasq.reshape((ny, nx))
 
-
-        for x in range(zvalues.shape[0]):
-            for y in range(zvalues.shape[1]):
-                r = (x-125)**2 + (y-125)**2
-                if r > 125**2:
-                    zvalues[x, y] = 0.5
-                else:
-                    if zvalues[x, y] > 0.6:
-                        zvalues[x, y] = 1
-                    else:
-                        zvalues[x, y] = 0
+        np.where(zvalues  > 0.6, 1, 0)
+        # for x in range(zvalues.shape[0]):
+        #     for y in range(zvalues.shape[1]):
+        #         r = (x-125)**2 + (y-125)**2
+        #         if r > 125**2:
+        #             zvalues[x, y] = 0.5
+        #         else:
+        #             if zvalues[x, y] > 0.6:
+        #                 zvalues[x, y] = 1
+        #             else:
+        #                 zvalues[x, y] = 0
 
         return zvalues, sigmasq
 
