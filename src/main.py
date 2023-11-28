@@ -109,42 +109,104 @@ demo_seqs = np.array(
 )
 
 slug_seqs = np.array(
-{
-    # ...
-}
+  [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
 )
 
+def all_water(mtx):
+    for x in range(mtx.shape[0]):
+        for y in range(mtx.shape[1]):
+            r = (x-125)**2 + (y-125)**2
+            if r > 125**2:
+                mtx[x, y] = 0.5
+    mtx[0, 0] = 1
 
-def demo_image(seqs):
+def image_on_fiber(fibers):
+    pass
+
+
+def demo_image_wave(seqs):
    x_range = 259
    y_range = 250
    range_step = 1
    gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
    gridy = np.arange(0.0, y_range, range_step)
-
+ 
    fig = plt.figure('frame')
 
    mtx = np.zeros((250, 250))
-   import liner_image
-   
+   water_mtx = np.zeros((250, 250))
+   all_water(water_mtx)
    for i in range(seqs.shape[1]):
       for j in (range(16)):
         points[j][2] = seqs[j][i]
-    #   print(points)
-      kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='linear', nlags=10)
-      mtx, _ = kg.execute('grid', gridx, gridy)
-    #   liner_image.imagine_layer(points, 125, mtx)
+      if not np.any(points[:,2]):
+        mtx = water_mtx
+      else:
+        # print(points)
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='linear',nlags=10,)
+        mtx, _ = kg.execute('grid', gridx, gridy)
+      # liner_image.imagine_layer(points, 125, mtx)
+      # slow display
       ax1 = fig.add_subplot(1, 1, 1)
       ax1.imshow(mtx, origin="lower", cmap='bwr')
-    #   ax1.scatter(points[:,0], points[:,1], c=points[:,2])
-    # #   plt.show()
-      plt.pause(0.01)
+      ax1.scatter(points[:,0], points[:,1], c=points[:,2])
+      # plt.show()
+      plt.pause(0.1)
       fig.clf()
 
+def demo_image_slug(seqs):
+   x_range = 259
+   y_range = 250
+   range_step = 1
+   gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
+   gridy = np.arange(0.0, y_range, range_step)
+ 
+   fig = plt.figure('frame')
+
+   mtx = np.zeros((250, 250))
+   water_mtx = np.zeros((250, 250))
+   all_water(water_mtx)
+#    import liner_image
+   sep_dict = {'range':40, 'nugget':0, 'psill':1}
+   for i in range(seqs.shape[1]):
+      for j in (range(16)):
+        points[j][2] = seqs[j][i]
+      if not np.any(points[:,2]):
+        mtx = water_mtx
+      else:
+        # print(points)
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='spherical', parameters=sep_dict, nlags=10,)
+        mtx, _ = kg.execute('grid', gridx, gridy)
+      # liner_image.imagine_layer(points, 125, mtx)
+      # slow display
+    #   ax1 = fig.add_subplot(1, 1, 1)
+    #   ax1.imshow(mtx, origin="lower", cmap='bwr')
+    #   ax1.scatter(points[:,0], points[:,1], c=points[:,2])
+    #   # plt.show()
+    #   plt.pause(0.1)
+    #   fig.clf()
  
 def main(): 
     start = time.perf_counter()
-    demo_image(demo_seqs)
+    # demo_image_wave(demo_seqs)
+    demo_image_slug(slug_seqs)
     end = time.perf_counter()
     print("runtime:", end-start)
 

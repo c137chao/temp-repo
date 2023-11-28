@@ -93,7 +93,7 @@ class Kriging:
             y, 
             z, 
             model='linear',  # linear gaussian, power, ... or custom
-            parameter=None,  # such as sill, range and so on
+            parameters=None,  # such as sill, range and so on
             custom_function=None,
             coordinates_type='euclidean',
             nlags=6, # number of iterators for get matrix
@@ -144,7 +144,7 @@ class Kriging:
             raise SyntaxError("no such coordinate type")
         
         # TODO: some init else?
-        para_list = util._make_variogram_parameter_list(model, parameter)
+        para_list = util._make_variogram_parameter_list(model, parameters)
         nd =  np.vstack((self.X_ADJUSTED, self.Y_ADJUSTED)).T
 
         (self.lags, self.semivariance, self.parameters) = \
@@ -261,17 +261,17 @@ class Kriging:
         zvalues = zvalues.reshape((ny, nx))
         sigmasq = sigmasq.reshape((ny, nx))
 
-        np.where(zvalues  > 0.6, 1, 0)
-        # for x in range(zvalues.shape[0]):
-        #     for y in range(zvalues.shape[1]):
-        #         r = (x-125)**2 + (y-125)**2
-        #         if r > 125**2:
-        #             zvalues[x, y] = 0.5
-        #         else:
-        #             if zvalues[x, y] > 0.6:
-        #                 zvalues[x, y] = 1
-        #             else:
-        #                 zvalues[x, y] = 0
+        # np.where(zvalues  > 0.6, 1, 0)
+        for x in range(zvalues.shape[0]):
+            for y in range(zvalues.shape[1]):
+                r = (x-125)**2 + (y-125)**2
+                if r > 125**2:
+                    zvalues[x, y] = 0.5
+                else:
+                    if zvalues[x, y] > 0.6:
+                        zvalues[x, y] = 1
+                    else:
+                        zvalues[x, y] = 0
 
         return zvalues, sigmasq
 
