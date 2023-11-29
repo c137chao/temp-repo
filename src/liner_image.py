@@ -7,9 +7,9 @@ def imagine_layer(fibera, radius, image):
     minAirHeight = radius*2
 
     for fiber in fibera:
-        if fiber[2] == 1 and fiber[1] > maxWaterHeight:
+        if fiber[2] == 0 and fiber[1] > maxWaterHeight:
             maxWaterHeight = fiber[1]
-        if fiber[2] == 0 and fiber[1] < minAirHeight:
+        if fiber[2] == 1 and fiber[1] < minAirHeight:
             minAirHeight = fiber[1]
     print("min air:", minAirHeight, "maxwater:", maxWaterHeight)
 

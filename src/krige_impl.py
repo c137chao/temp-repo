@@ -262,16 +262,21 @@ class Kriging:
         sigmasq = sigmasq.reshape((ny, nx))
 
         # np.where(zvalues  > 0.6, 1, 0)
+        total = 0
+        gas_axi = 0
         for x in range(zvalues.shape[0]):
             for y in range(zvalues.shape[1]):
                 r = (x-125)**2 + (y-125)**2
                 if r > 125**2:
                     zvalues[x, y] = 0.5
                 else:
+                    total += 1
                     if zvalues[x, y] > 0.6:
                         zvalues[x, y] = 1
+                        gas_axi += 1
                     else:
                         zvalues[x, y] = 0
 
+        print("total pix:", total, ", gas pix:", gas_axi)
         return zvalues, sigmasq
 
