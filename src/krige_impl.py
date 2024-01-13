@@ -1,4 +1,5 @@
 import numpy as np
+import taichi as ti
 import scipy.linalg
 from scipy.spatial.distance import cdist
 
@@ -10,7 +11,7 @@ def linear_variogram_model(m, d):
     """Linear model, m is [slope, nugget]"""
     slope = float(m[0])
     nugget = float(m[1])
-    return slope * d + nugget
+    return slope * d / 2 + nugget
 
 
 def power_variogram_model(m, d):
@@ -124,7 +125,7 @@ class Kriging:
         # x, y, z must like a 1d np arrays
         self.x_data = np.atleast_1d(np.squeeze(np.array(x, copy=True, dtype=np.float64)))
         self.y_data = np.atleast_1d(np.squeeze(np.array(y, copy=True, dtype=np.float64)))
-        self.Z = np.atleast_1d(np.squeeze(np.array(z, copy=True, dtype=np.float64)))
+        self.z_data = np.atleast_1d(np.squeeze(np.array(z, copy=True, dtype=np.float64)))
 
         # distans type, euclidean or geographic
         if self.coordinates_type == 'euclidean':
@@ -149,7 +150,7 @@ class Kriging:
 
         (self.lags, self.semivariance, self.parameters) = \
             util._initialize_variogram_model(
-                nd, self.Z, model, para_list, variogram_function, nlags, False, coordinates_type
+                nd, self.z_data, model, para_list, variogram_function, nlags, False, coordinates_type
             )
 
 
@@ -167,12 +168,14 @@ class Kriging:
         )
         plt.show()
         
-    def _get_kriging_matrix(self, n):
+    def get_kriging_matrix(self, n):
         if self.coordinates_type == "euclidean":
             xy = np.concatenate(
-                (self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]/1.5), axis=1
+                (self.X_ADJUSTED[:, np.newaxis]*2, self.Y_ADJUSTED[:, np.newaxis]), axis=1
             )
             d = cdist(xy, xy, "euclidean")
+            # d = util.custom_dist(xy, xy, self.z_data)
+
         elif self.coordinates_type == "geographic":
             d = util.great_circle_distance(
                 self.X_ADJUSTED[:, np.newaxis],
@@ -195,10 +198,11 @@ class Kriging:
         xpoints,   # x_range on grid, such as 250 (125 * 2), 125 is d of pipe
         ypoints,   # y_range on grid, such as 250 (125 * 2)
         mask=None, # specify valid area range, such as circle, not use now
+        dist='euclidean', # 
         n_closest_points=None, # size for windows, not use now
     ):
 
-        if style != "grid" and style != "masked" and style != "points":
+        if style != "grid" and style != "masked" and style != "points":                             
             raise ValueError("style argument must be 'grid', 'points', or 'masked'")
 
         if n_closest_points is not None and n_closest_points <= 1:
@@ -209,7 +213,10 @@ class Kriging:
         n = self.X_ADJUSTED.shape[0]
         nx = xpts.size
         ny = ypts.size
-        a = self._get_kriging_matrix(n)
+        a = self.get_kriging_matrix(n)
+
+        # if mask is not None:
+        #     mask = mask.flatten()
 
         npt = ny * nx
         grid_x, grid_y = np.meshgrid(xpts, ypts)
@@ -217,13 +224,13 @@ class Kriging:
         ypts = grid_y.flatten()
 
         if self.coordinates_type == "euclidean":
-            xy_data = np.concatenate((self.X_ADJUSTED[:, np.newaxis]/2, self.Y_ADJUSTED[:, np.newaxis]), axis=1)
-            xy_points = np.concatenate((xpts[:, np.newaxis]/2, ypts[:, np.newaxis]), axis=1)
+            xy_data = np.concatenate((self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]*1.5), axis=1)
+            xy_points = np.concatenate((xpts[:, np.newaxis], ypts[:, np.newaxis]*1.5), axis=1)
 
         if self.coordinates_type == "euclidean":
-            # print("all points:", xy_points.shape, ", fiber points:", xy_data.shape)
-            bd = cdist(xy_points, xy_data, "euclidean")
-            # bd = util.custom_dist(xy_points, xy_data)
+            bd = cdist(xy_points, xy_data, dist)
+            # bd = cdist(xy_points, xy_data, lambda u, v: )
+            # bd = util.custom_dist(xy_points, xy_data, self.z_data)
         elif self.coordinates_type == "geographic":
             bd = util.great_circle_distance(
                 xpts[:, np.newaxis],
@@ -232,7 +239,7 @@ class Kriging:
                 self.Y_ADJUSTED,
             )
 
-        pt = bd.shape[0]
+        npt = bd.shape[0]
         n = self.X_ADJUSTED.shape[0]
         zero_index = None
         zero_value = False
@@ -252,31 +259,21 @@ class Kriging:
         if zero_value and self.exact_values:
             b[zero_index[0], zero_index[1], 0] = 0.0
         b[:, n, 0] = 1.0
+        
+        # if mask is not None:
+        #     mask_b = np.repeat(mask[:, np.newaxis, np.newaxis], n+1, axis=1)
+        #     b = np.ma.array(b, mask=mask_b)
 
         x = np.dot(a_inv, b.reshape((npt, n + 1)).T).reshape((1, n + 1, npt)).T
-        zvalues = np.sum(x[:, :n, 0] * self.Z, axis=1)
+        zvalues = np.sum(x[:, :n, 0] * self.z_data, axis=1)
         sigmasq = np.sum(x[:, :, 0] * -b[:, :, 0], axis=1)
 
 
         zvalues = zvalues.reshape((ny, nx))
         sigmasq = sigmasq.reshape((ny, nx))
 
-        # np.where(zvalues  > 0.6, 1, 0)
-        total = 0
-        gas_axi = 0
-        for x in range(zvalues.shape[0]):
-            for y in range(zvalues.shape[1]):
-                r = (x-125)**2 + (y-125)**2
-                if r > 125**2:
-                    zvalues[x, y] = 0.5
-                else:
-                    total += 1
-                    if zvalues[x, y] > 0.6:
-                        zvalues[x, y] = 1
-                        gas_axi += 1
-                    else:
-                        zvalues[x, y] = 0
+        zvalues = np.where(zvalues  > 0.5, 1.0, 0.0)
 
-        print("total pix:", total, ", gas pix:", gas_axi)
+        # print("total pix:", total_px, ", gas pix:", gas_px)
         return zvalues, sigmasq
 

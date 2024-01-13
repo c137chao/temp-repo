@@ -11,7 +11,7 @@ def imagine_layer(fibera, radius, image):
             maxWaterHeight = fiber[1]
         if fiber[2] == 1 and fiber[1] < minAirHeight:
             minAirHeight = fiber[1]
-    print("min air:", minAirHeight, "maxwater:", maxWaterHeight)
+    # print("min air:", minAirHeight, "maxwater:", maxWaterHeight)
 
     bound = (maxWaterHeight + minAirHeight)//2
 

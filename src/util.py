@@ -1,10 +1,47 @@
 import cv2
 import math
+import numpy as np
+import taichi as ti
 
-def dist(x1, y1, x2, y2):
-    return abs(y1-y2) + abs(x1-x2)
+ti.init(arch=ti.gpu)
 
-def custom_dist(XA, XB):
+@ti.kernel
+def ti_binary_grid(grid : ti.types.ndarray()) -> ti.types.ndarray():
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            if (i-125) ** 2 + (j-125)**2 > 125**2:
+                grid[i, j] = 0.5
+
+center_x = 125
+center_y = 125
+radius_square = 125 * 125
+
+x_range = 250
+y_range = 250
+range_step = 1
+gridx = np.arange(0.0, x_range, range_step)
+gridy = np.arange(0.0, y_range, range_step)
+
+x, y = np.meshgrid(gridx, gridy)
+distance = ((x - center_x)**2 + (y - center_y)**2)
+
+
+def set_range(grid):
+    grid[distance > radius_square] = 0.5
+
+
+# total pixes is 62500
+def get_gas_holding(grid):
+    count = np.sum(grid == 1)
+    return count / 62500
+
+# @ti.func
+def dist(x1, y1, x2, y2, val=0):
+
+    return abs(y1-y2) + abs(x1-x2) + val * abs(y2 - y1)
+
+# @ti.kernel
+def custom_dist(XA, XB, XB_vals):
     XA = np.asarray(XA)
     XB = np.asarray(XB)
 
@@ -26,9 +63,9 @@ def custom_dist(XA, XB):
 
     print("mA:", mA, ", mB:", mB, ", shape:", ans.shape)
 
-    for i in range(mA):
-        for j in range(mB):
-            ans[i][j] = dist(XA[i][0], XA[i][1], XB[j][0], XB[j][1])
+    for (i, j) in range(mA, mB):
+        ans[i, j] = dist(XA[i][0], XA[i][1], XB[j][0], XB_vals[j])
+
 
     return ans
 
@@ -43,6 +80,49 @@ def show_image(title, img):
 
 def draw_ellipsoid_3d():
     pass
+
+GAS_THRESH_HOLD = 7
+WATER_THRESH_HOLD = 3
+
+BUBBLE_MAX_FRAMES = 10
+
+import fibers
+
+def all_in_gas(sequence):
+    for sig in sequence:
+        if sig < GAS_THRESH_HOLD:
+            return False
+    return True
+
+def all_in_water(sequence):
+    for sig in sequence:
+        if sig > WATER_THRESH_HOLD:
+            return False
+    return True
+
+def max_gas_length(sequence):
+    ans = 0
+    length = 0
+    for sig in sequence:
+        if sig > GAS_THRESH_HOLD:
+            length += 1
+        else:
+            ans = max(ans, length)
+            length = 0
+    return ans # frame cnt of signal sequece
+
+def sig_seqence_to_fiber_state(sequence, x, y):
+    state = fibers.FiberState.NONE
+    if all_in_gas(sequence):
+        state = fibers.FiberState.GAS
+    elif all_in_water(sequence):
+        state = fibers.FiberState.WATER
+    elif max_gas_length(sequence) < BUBBLE_MAX_FRAMES:
+        state = fibers.FiberState.BUBBLE
+    else:
+        state = fibers.FiberState.SLUG
+
+    return 
 
 import numpy as np
 import scipy.linalg as spl

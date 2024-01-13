@@ -1,11 +1,13 @@
 import socket
 import time
 import pickle
+import util
 import krige_impl 
 
 import numpy as np
 from matplotlib import pyplot as plt
 
+import taichi as ti
 
 # create two process
 # p1 read data from one port with len 8
@@ -110,14 +112,14 @@ demo_seqs = np.array(
 
 slug_seqs = np.array(
   [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-    [0,0,0,0,0,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-    [0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -128,6 +130,15 @@ slug_seqs = np.array(
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   ]
 )
+
+mask = np.zeros((250, 250),  dtype=bool)
+for x in range(mask.shape[0]):
+   for y in range(mask.shape[1]):
+      mask[x, y] = False
+      if util.in_cycle(x, y, 125): 
+         mask[x, y] = True
+      
+print(mask)
 
 def all_water(mtx):
     for x in range(mtx.shape[0]):
@@ -161,75 +172,122 @@ def demo_image_level(seqs):
       plt.pause(0.1)
       fig.clf()
 
+x = np.arange(1, 250+1)
+y = np.arange(1, 64+1)
+
+pipe_scatter = []
+from mpl_toolkits.mplot3d import Axes3D
+
 def demo_image_wave(seqs):
-   x_range = 259
-   y_range = 250
-   range_step = 1
-   gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
-   gridy = np.arange(0.0, y_range, range_step)
+  x_range = 250
+  y_range = 250
+  range_step = 1
+  gridx = np.arange(0.0, x_range, range_step)
+  gridy = np.arange(0.0, y_range, range_step)
  
-   fig = plt.figure('frame')
+  mtx = np.zeros((250, 250))
+  water_mtx = np.zeros((250, 250))
+  all_water(water_mtx)
+  fig = plt.figure('frame')
+  for i in range(seqs.shape[1]):
+    for j in (range(16)):
+      points[j][2] = seqs[j][i]
+    if not np.any(points[:,2]):
+      mtx = water_mtx
+    else:
+      kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10,)
+      mtx, _ = kg.execute('grid', gridx, gridy)
+      util.set_range(mtx)
+    
+    pipe_scatter.append(np.count_nonzero(mtx, axis=0))
 
-   mtx = np.zeros((250, 250))
-   water_mtx = np.zeros((250, 250))
-   all_water(water_mtx)
-   for i in range(seqs.shape[1]):
-      for j in (range(16)):
-        points[j][2] = seqs[j][i]
-      if not np.any(points[:,2]):
-        mtx = water_mtx
-      else:
-        # print(points)
-        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='linear',nlags=10,)
-        mtx, _ = kg.execute('grid', gridx, gridy)
+    # slow display
+    ax1 = fig.add_subplot(1, 1, 1)
+    ax1.imshow(mtx, origin="lower", cmap='bwr')
+    ax1.scatter(points[:,0], points[:,1], c=points[:,2])
+    plt.pause(0.001)
+    fig.clf()
 
-      # slow display
-      ax1 = fig.add_subplot(1, 1, 1)
-      ax1.imshow(mtx, origin="lower", cmap='bwr')
-      ax1.scatter(points[:,0], points[:,1], c=points[:,2])
-      # plt.show()
-      plt.pause(0.1)
-      fig.clf()
+center_x = 125
+center_y = 125
+radius_square = 125 * 125
 
 def demo_image_slug(seqs):
-   x_range = 259
+   x_range = 250
    y_range = 250
    range_step = 1
    gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
    gridy = np.arange(0.0, y_range, range_step)
- 
+
+   x, y = np.meshgrid(gridx, gridy)
+   distance = ((x - center_x)**2 + (y - center_y)**2)
    fig = plt.figure('frame')
 
    mtx = np.zeros((250, 250))
    water_mtx = np.zeros((250, 250))
    all_water(water_mtx)
-#    import liner_image
-   sep_dict = {'range':40, 'nugget':0, 'psill':1}
+   sep_dict = {'range':45, 'nugget':0, 'psill':2}
    for i in range(seqs.shape[1]):
       for j in (range(16)):
         points[j][2] = seqs[j][i]
-    #   print(points)
       ax1 = fig.add_subplot(1, 1, 1)
       if not np.any(points[:,2]):
         ax1.imshow(water_mtx, origin="lower", cmap='bwr')
+
       else:
-        # print(points)
-        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='spherical', parameters=sep_dict, nlags=10,)
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='spherical', parameters=sep_dict, nlags=10)
         mtx, _ = kg.execute('grid', gridx, gridy)
+        util.set_range(mtx)
+
         ax1.imshow(mtx, origin="lower", cmap='bwr')
 
       # liner_image.imagine_layer(points, 125, mtx)
-      # slow display
-      ax1.scatter(points[:,0], points[:,1], c=points[:,2])
+      # slow di
+      
       # plt.show()
-      plt.pause(0.1)
+      plt.pause(0.001)
       fig.clf()
+
+
+def demo_image_slug_ti(seqs):
+   x_range = 250
+   y_range = 250
+   range_step = 1
+   gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
+   gridy = np.arange(0.0, y_range, range_step)
+
+   x, y = np.meshgrid(gridx, gridy)
+   distance =((x - center_x)**2 + (y - center_y)**2)
+   mtx = np.zeros((250, 250))
+   water_mtx = np.zeros((250, 250))
+   water_mtx[distance > radius_square] = 0.5
+   water_mtx[0, 0] = 1
  
+   gui = ti.GUI('pipe slice', res = (x_range, y_range))
+
+   sep_dict = {'range':45, 'nugget':0, 'psill':2}
+   for i in range(seqs.shape[1]):
+      for j in (range(16)):
+        points[j][2] = seqs[j][i]
+ 
+      if not np.any(points[:,2]):
+        gui.set_image(water_mtx)
+      else:
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='spherical', parameters=sep_dict, nlags=10)
+        mtx, _ = kg.execute('grid', gridx, gridy)
+        mtx[distance > radius_square] = 0.5
+
+        gui.set_image(mtx.swapaxes(0, 1))
+
+      gui.show()
+
+
 def main(): 
     start = time.perf_counter()
-    demo_image_level(demo_seqs)
-    # demo_image_wave(demo_seqs)
+    # demo_image_level(demo_seqs)
+    demo_image_wave(demo_seqs)
     # demo_image_slug(slug_seqs)
+    # demo_image_slug_ti(slug_seqs)
     end = time.perf_counter()
     print("runtime:", end-start)
 
@@ -241,8 +299,63 @@ def main():
 
     # 4. clear plt and update image
     
-  
+from matplotlib import cm
+
 # Using the special variable  
 # __name__ 
 if __name__=="__main__": 
     main() 
+    print(len(pipe_scatter))
+    z = np.array(pipe_scatter)
+    X, Y = np.meshgrid(x, y[:40])
+
+    plt.style.use('_mpl-gallery')
+
+    # Make data
+    # R = np.sqrt(X**2 + Y**2)
+    # Z = np.sin(R)
+
+    # Plot the surface
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    # ax.plot_surface(X, Y, Z[:40, :], vmin=Z.min() * 2, cmap=cm.Blues)
+
+    ax.set(xticklabels=[],
+           yticklabels=[],
+           zticklabels=[])
+
+    # plt.show()
+
+
+    # ax = fig.add_subplot(111, projection='3d') 
+
+    # us = np.linspace(0, 2 * np.pi, 32) 
+    # zs = np.linspace(0, 1, 64) 
+
+    # us, zs = np.meshgrid(us, zs) 
+
+    # xs = 10 * np.cos(us) 
+    # ys = 10 * np.sin(us) 
+    # ax.plot_wireframe(ys, zs, xs, color='black') 
+
+    # plt.show() 
+
+    print("x:", X.shape)
+    print("y:", Y.shape)
+    print("z:", z.shape)
+    print(z)
+    # fig = plt.figure()
+    # ax = Axes3D(fig)
+    ax.plot_surface(X, Y, z[:40, :], cmap=cm.Blues)
+
+    ax.set_xlim(0, 250)
+    ax.set_ylim(0, 40)
+    ax.set_zlim(0, 250)
+
+    ax.set_box_aspect((1,4,1)) # 设定坐标轴的长宽高比例
+    # ax.grid(False) 
+
+    ax.xaxis.set_label_text('X')
+    ax.yaxis.set_label_text('Y')
+    ax.zaxis.set_label_text('Z')
+
+    plt.show()
