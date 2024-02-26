@@ -57,6 +57,11 @@ def spherical_variogram_model(m, d):
 # custom function
 # bubble image ? or predo?
 
+# wave
+def wave_variogram_model(m, d):
+    
+    return None
+
 # shut flow
 def slug_variogram_model(m, d):
     psill = float(m[0])
@@ -127,23 +132,14 @@ class Kriging:
         self.y_data = np.atleast_1d(np.squeeze(np.array(y, copy=True, dtype=np.float64)))
         self.z_data = np.atleast_1d(np.squeeze(np.array(z, copy=True, dtype=np.float64)))
 
-        # distans type, euclidean or geographic
-        if self.coordinates_type == 'euclidean':
-            self.x_center = (np.amax(self.x_data) + np.amin(self.x_data)) / 2.0
-            self.y_center = (np.amax(self.y_data) + np.amin(self.y_data)) / 2.0
-            self.X_ADJUSTED, self.Y_ADJUSTED = util._adjust_for_anisotropy(
-                np.vstack((self.x_data, self.y_data)).T, [self.x_center, self.y_center], [1.0], [0],
-            ).T
+        # cacu distance
+        self.x_center = (np.amax(self.x_data) + np.amin(self.x_data)) / 2.0
+        self.y_center = (np.amax(self.y_data) + np.amin(self.y_data)) / 2.0
+        self.X_ADJUSTED, self.Y_ADJUSTED = util._adjust_for_anisotropy(
+            np.vstack((self.x_data, self.y_data)).T, [self.x_center, self.y_center], [1.0], [0],
+        ).T
 
-        elif self.coordinates_type == "geographic":
-            self.XCenter = 0.0
-            self.Ycenter = 0.0
-            self.X_ADJUSTED = self.x_data
-            self.Y_ADJUSTED = self.y_data
 
-        else: # no define for other distance
-            raise SyntaxError("no such coordinate type")
-        
         # TODO: some init else?
         para_list = util._make_variogram_parameter_list(model, parameters)
         nd =  np.vstack((self.X_ADJUSTED, self.Y_ADJUSTED)).T
@@ -169,20 +165,13 @@ class Kriging:
         plt.show()
         
     def get_kriging_matrix(self, n):
-        if self.coordinates_type == "euclidean":
-            xy = np.concatenate(
-                (self.X_ADJUSTED[:, np.newaxis]*2, self.Y_ADJUSTED[:, np.newaxis]), axis=1
-            )
-            d = cdist(xy, xy, "euclidean")
-            # d = util.custom_dist(xy, xy, self.z_data)
 
-        elif self.coordinates_type == "geographic":
-            d = util.great_circle_distance(
-                self.X_ADJUSTED[:, np.newaxis],
-                self.Y_ADJUSTED[:, np.newaxis],
-                self.X_ADJUSTED,
-                self.Y_ADJUSTED,
-            )
+        xy = np.concatenate(
+            (self.X_ADJUSTED[:, np.newaxis]*2, self.Y_ADJUSTED[:, np.newaxis]), axis=1
+        )
+        d = cdist(xy, xy, "euclidean")
+        # d = util.custom_dist(xy, xy, self.z_data)
+
         a = np.zeros((n + 1, n + 1))
         a[:n, :n] = -self.variogram_function(self.parameters, d)
 
@@ -223,21 +212,16 @@ class Kriging:
         xpts = grid_x.flatten()
         ypts = grid_y.flatten()
 
-        if self.coordinates_type == "euclidean":
-            xy_data = np.concatenate((self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]*1.5), axis=1)
-            xy_points = np.concatenate((xpts[:, np.newaxis], ypts[:, np.newaxis]*1.5), axis=1)
 
-        if self.coordinates_type == "euclidean":
-            bd = cdist(xy_points, xy_data, dist)
-            # bd = cdist(xy_points, xy_data, lambda u, v: )
-            # bd = util.custom_dist(xy_points, xy_data, self.z_data)
-        elif self.coordinates_type == "geographic":
-            bd = util.great_circle_distance(
-                xpts[:, np.newaxis],
-                ypts[:, np.newaxis],
-                self.X_ADJUSTED,
-                self.Y_ADJUSTED,
-            )
+        xy_data = np.concatenate((self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]*1.5), axis=1)
+        xy_points = np.concatenate((xpts[:, np.newaxis], ypts[:, np.newaxis]*1.5), axis=1)
+
+
+        bd = cdist(xy_points, xy_data, dist)
+        # bd = cdist(xy_points, xy_data, lambda u, v: print('u:', u, 'v:', v))
+        # bd = util.custom_dist(xy_points, xy_data, self.z_data)
+
+
 
         npt = bd.shape[0]
         n = self.X_ADJUSTED.shape[0]
@@ -272,7 +256,7 @@ class Kriging:
         zvalues = zvalues.reshape((ny, nx))
         sigmasq = sigmasq.reshape((ny, nx))
 
-        zvalues = np.where(zvalues  > 0.5, 1.0, 0.0)
+        zvalues = np.where(zvalues  > 120, 255, 0)
 
         # print("total pix:", total_px, ", gas pix:", gas_px)
         return zvalues, sigmasq

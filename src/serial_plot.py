@@ -28,70 +28,219 @@ points = np.array(
        [85, 35, 0],
     ])
 
+'''
+    plot signal waves widget
+    it set 8*2 subfigure layout and plot signals on it when recv 
+'''
+import time
+import threading
+
 class MatplotSignal(QWidget):
     def __init__(self, parent=None):
         super(MatplotSignal, self).__init__(parent)
+        self.init_UI()
+        self.plot_example()
 
-        self.fig, self.axes = plt.subplot(8, 2, figsize=(10, 4))
-        for ax in self.axes:
-            ax.set_facecolor('black')  # 设置背景颜色为黑色
-            ax.grid(True, color='white', linestyle='dotted') 
-            ax.set_xlim(0, 10240)  # 设置x轴范围
-            ax.set_ylim(0, 5)  # 设置y轴范围
-
-            self.axs.append(ax)
-
-
-        self.canvas = FigureCanvas(self.figure)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.canvas)
+    def init_UI(self):
+        layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        self.plot_image(None)
+        self.fig, self.axes = plt.subplots(16, 1, figsize=(15, 15))
+        self.canvas = FigureCanvas(self.fig)
+        layout.addWidget(self.canvas)
 
-    def plot_image(self, signals):
-        plt.figure(facecolor='black', edgecolor='green')
+        # self.fig_left, self.axes_left = plt.subplots(8, 1, figsize=(10, 5))
+        # self.fig_right, self.axes_right = plt.subplots(8, 1, figsize=(10, 5))
+        # self.canvas_left = FigureCanvas(self.fig_left)
+        # self.canvas_right = FigureCanvas(self.fig_right)
 
-        x = np.arange(0, 1024)
-        y = np.random.randint(5, 6, size=1024)
-        for ax in self.axs:
-            ax.plot(x, y, color='green')
+        # layout.addWidget(self.canvas_left)
+        # layout.addWidget(self.canvas_right)
+
+    def plot_data(self, mtx):
+        # print(mtx)
+        start_time = time.time()
+        for i, ax in enumerate(self.axes):
+            ax.clear()
+            ax.set_ylim(-5, 5)
+
+            ax.plot(mtx[i])
+            ax.set_facecolor('black')
+
+        self.canvas.draw()
+
+        end_time = time.time()
+        print("耗时: {:.2f}秒".format(end_time - start_time))
+
+    def plot_left(self, mtx):
+        for i, ax in enumerate(self.axes_left):
+            ax.clear()
+            ax.set_ylim(-5, 5)
+            ax.plot(mtx[i])
+            ax.set_facecolor('black')
+
+        self.canvas_left.draw()
+
+
+    def plot_right(self, mtx):
+        for i, ax in enumerate(self.axes_right):
+            ax.clear()
+            ax.plot(mtx[i])
+            ax.set_facecolor('black')
+
+        self.canvas_right.draw()
+        
+
+    def plot_example(self):
+        # Update the data with new random values
+        data = [np.random.randn(100) for _ in range(16)]
+
+        # Plot the updated data
+        self.plot_data(data)
+
+    '''
+        plot signals waves on signale groupbox in label_2
+
+        parameters
+        --------------
+        signals: signals is n * 16 numpy array
+                 n maybe 600, because program will process data every 10 frames
+
+    '''
+    def update_image(self, signals):
+        signals = signals.reshape(16, len(signals)>>4)
+        # signals must be n * 16 numppy arrays
+        # print(signals.shape[1], len(self.axes))
+        # assert(len(signals.shape) == 2)
+        # assert(signals.shape[1] == 16)
+        self.plot_data(signals)
+        
+        # self.plot_left(signals[:8,])
+        # self.plot_right(signals[8:,])
+        # my_thread = threading.Thread(target=self.plot_left, args=(signals[:8,]))
+        # my_thread.start()
+
 
 import krige_impl
+import util
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtGui import QPixmap, QPainter, QImage
 
-class MatplotImage2d(QWidget):
+x_range = 250
+y_range = 250
+range_step = 1
+
+gridx = np.arange(0.0, x_range, range_step)
+gridy = np.arange(0.0, y_range, range_step)
+
+'''
+
+'''
+class MatplotSliceDemo(QWidget):
     def __init__(self, parent=None):
-        super(MatplotImage2d, self).__init__(parent)
-        self.fig, self.ax = plt.subplots(figsize=(500, 400))
-        self.figure = plt.figure(figsize=(3, 2), dpi=10)
-        self.canvas = FigureCanvas(self.figure)
-        layout = QVBoxLayout()
-        layout.addWidget(self.canvas)
-        self.setLayout(layout)
-        self.plot_example(None)
+        super(MatplotSliceDemo, self).__init__(parent)
+        
+        self.image_label = QLabel()
+        self.all_water = np.zeros((250, 250), dtype=float)
 
-    def plot_example(self, data, bbox=None):
-        ax = self.figure.add_subplot(111)
-        if bbox:
-            pass
-        x_range = 250
-        y_range = 250
-        range_step = 1
-        gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
-        gridy = np.arange(0.0, y_range, range_step)
+        layout = QVBoxLayout()
+        layout.addWidget(self.image_label)
+        self.setLayout(layout)
+
+    def plot_data(self, mtx):
+        print(mtx.shape, sys.getsizeof(mtx.data))
+        mtx = mtx.astype(np.uint8)
+        qimage = QImage(mtx.data, 250, 250, QImage.Format_Grayscale8)
+        pixmap = QPixmap.fromImage(qimage)
+        self.image_label.setPixmap(pixmap)
+
+
+    def init_UI(self):
+        self.label = QWidget.QLabel(self)
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+
+    def plot_example(self):
         mtx = np.zeros((250, 250))
-        fibers = np.array([1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0])
+        fibers = np.array([255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0])
         for j in (range(16)):
             points[j][2] =fibers[j]
-        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10,)
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10)
         mtx, _ = kg.execute('grid', gridx, gridy)
-        for i in range(0, 250):
-            for j in range(0, 250):
-                if i**2+j**2>(125**2):
-                    mtx[i, j] = 0.5
-        ax.imshow(mtx, origin="lower", cmap='bwr')
+        # util.set_range_uint8(mtx)
+        
+        self.plot_data(mtx)
+
+    def update_image(self, frame):
+        points[:, 2] = frame
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10)
+        mtx, _ = kg.execute('grid', gridx, gridy)
+
+        self.plot_data(mtx)
+
+
+def test_matplotSliceDemo():
+    app = QApplication(sys.argv)
+    ex = MatplotSliceDemo()
+    start = time.perf_counter()
+
+    ex.plot_example()
+    ex.show() 
+    for _ in range(100):
+        np_array = np.random.randint(255, size=(100, 100, 3), dtype=np.uint8)
+        # ex.plot_data(np_array)
+
+    end = time.perf_counter()
+    print("runtime:", end-start)
+    sys.exit(app.exec_())     
+
+# test_matplotSliceDemo()
+
+class MatplotSlice(QWidget):
+    def __init__(self, parent=None):
+        super(MatplotSlice, self).__init__(parent)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.fig, self.ax = plt.subplots()
+        self.canvas = FigureCanvas(self.fig)
+
+        layout.addWidget(self.canvas)
+        self.plot_example()
+
+
+    def plot_example(self):
+        mtx = np.zeros((250, 250))
+        fibers = np.array([1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0])
+        points[:,2] = fibers
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10)
+        mtx, _ = kg.execute('grid', gridx, gridy)
+        self.ax.imshow(mtx, cmap='bwr')
+        print('get image')
         self.canvas.draw()
+
+
+    def plot_image(self, frames, type = None):
+        mtx = np.zeros(x_range, y_range)
+        # image on data
+        for frame in frames:
+            points[:, 2] = frame
+            kg = krige_impl.Kriging(points[:0], points[:1], points[:2], nlags=10)
+            mtx, _ = kg.execute('grid', gridx, gridy)
+            util.set_range(mtx)
+
+
+def test_matplotSlice():
+    app = QApplication(sys.argv)
+    ex = MatplotSlice()
+    for _ in range(10):
+        ex.plot_example()
+        ex.show()
+    sys.exit(app.exec_())     
+
+# test_matplotSlice()
 
 class MatplotImage3d(QWidget):
     def __init__(self, parent=None):
@@ -116,7 +265,7 @@ class MatplotImage3d(QWidget):
         self.setLayout(layout)
 
     
-    def plot_example(self, Z):
+    def plot_image(self, Z):
         self.ax.plot_surface(self.X, self.Y, Z, cmap=cm.Blues)
 
         # selfax.set_box_aspect((1,4,1)) # 设定坐标轴的长宽高比例

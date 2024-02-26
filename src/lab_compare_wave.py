@@ -63,7 +63,7 @@ points = np.array(
        [85, 35, 0],
     ])
 
-show = False
+show = True
 total = np.array([0, 0, 0, 0, 0])
 stats = np.array([0, 0, 0, 0, 0])
 
@@ -125,7 +125,7 @@ def my_wave_kriging(ax, cmp):
     # plt.show()
     import cv2
     global total_diff_k 
-    cv2.GaussianBlur(mtx_wave_krig, (5, 5), 0)
+    # cv2.GaussianBlur(mtx_wave_krig, (5, 5), 0)
     ssim = compare_ssim(mtx_wave_krig, cmp, full=False, data_range = 1)
     total_diff_k +=  ssim
 
@@ -199,8 +199,8 @@ def compare_waves(all_wave):
 
         origin = np.flipud(origin)
         
-        # fig, axes = plt.subplots(1, 5, figsize=(15, 15))
-        axes = np.array([0,0,0,0,0])
+        fig, axes = plt.subplots(1, 5, figsize=(15, 15))
+        # axes = np.array([0,0,0,0,0])
 
         origin = origin.astype(float)
         util.set_range(origin)
@@ -268,6 +268,7 @@ def compare_waves(all_wave):
 
     plt.show()
     
+compare_waves(generate_waves())
 
 labels = ['ori-krig', 'opt-krig', 'linear', 'rbf', 'idw']
 colors = ['red', 'green', 'blue', 'purple', 'yellow']  # 每个柱子的颜色

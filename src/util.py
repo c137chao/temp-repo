@@ -25,6 +25,8 @@ gridy = np.arange(0.0, y_range, range_step)
 x, y = np.meshgrid(gridx, gridy)
 distance = ((x - center_x)**2 + (y - center_y)**2)
 
+def set_range_uint8(grid):
+    grid[distance > radius_square] = 125
 
 def set_range(grid):
     grid[distance > radius_square] = 0.5
@@ -85,8 +87,6 @@ GAS_THRESH_HOLD = 7
 WATER_THRESH_HOLD = 3
 
 BUBBLE_MAX_FRAMES = 10
-
-import fibers
 
 def all_in_gas(sequence):
     for sig in sequence:

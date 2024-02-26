@@ -1,6 +1,5 @@
 import numpy as np
 import krige_impl
-import fibers
 
 from matplotlib import pyplot as plt
 

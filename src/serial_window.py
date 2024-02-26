@@ -5,7 +5,7 @@ import threading
 
 import numpy as np
 
-from serial_thread import Serial_Qthread
+from qthread_serial import Serial_Qthread
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -18,6 +18,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
+import multiprocessing
+import random
+
 matplotlib.use("Qt5Agg")  # 声明使用QT5
 
 def toHex(byte_data, split):
@@ -27,20 +30,22 @@ def toHex(byte_data, split):
     
     return hex_data
 
-
 import krige_impl
 
 
 '''
     
 '''
+import demo
 class SerialFrom(QWidget):
     def __init__(self):
         super().__init__()
         self.ui = serial_ui.Ui_Serial_Form()
+
         self.ui.setupUi(self)
 
         self.ports = []
+        self.counter = 0
 
         self.qthread_init()
         self.ui_init()
@@ -48,14 +53,6 @@ class SerialFrom(QWidget):
 
         self.start_timer()
 
-        # start = time.perf_counter()
-        # demo_image_wave(demo_seqs)
-        # end = time.perf_counter()
-
-        # print("runtime:", end-start)
-        # z = np.array(pipe_scatter)
-        # # print("============================")
-        # self.ui.show_pipe.plot_example(z)
 
     '''
         set basic layout of checkbox
@@ -66,20 +63,21 @@ class SerialFrom(QWidget):
         stop = ('1', '1.5', '2')
         data = ('8', '7', '6', '5')
         check = ('None', 'Odd', 'Even')
+        frequence = ('5K', '10K', '20K', '50K')
         self.ui.comboBox_baud.addItems(baud)
         self.ui.comboBox_stop.addItems(stop)
         self.ui.comboBox_data.addItems(data)
         self.ui.comboBox_check.addItems(check)
+        self.ui.comboBox_freq.addItems(frequence)
 
         self.ui.checkBox_rts.stateChanged.connect(self.checkBox_rts)
-        self.ui.checkBox_rtx.stateChanged.connect(self.checkBox_rtx)
         # self.ui.checkBox_timestamp.stateChanged.connect(self.checkBox_timestamp)
 
         self.ui.checkBox_send_hex.stateChanged.connect(self.checkBox_hex_send)
 
 
     # def serial_btn_connect(self):
-    #     self.ui.btn_open_serial.clicked.connect(self.open_serial)
+        # self.ui.btn_open_serial.clicked.connect(self.open_serial)
 
         # self.ui.checkBox_rts.stateChanged.connect(self.checkBox_rts)
         # self.ui.checkBox_rtx.stateChanged.connect(self.checkBox_rtx)
@@ -175,6 +173,7 @@ class SerialFrom(QWidget):
         self.set_parameter['comboBox_baud'] = self.ui.comboBox_baud.currentText()
         self.set_parameter['comboBox_stop'] = self.ui.comboBox_stop.currentText()
         self.set_parameter['comboBox_data'] = self.ui.comboBox_data.currentText()
+        self.set_parameter['comboBox_freq'] = self.ui.comboBox_freq.currentText()
         self.set_parameter['comboBox_check'] = self.ui.comboBox_check.currentText()
        
         self.serial_qthread.signal_pushbButton_open.emit(self.set_parameter)
@@ -210,6 +209,9 @@ class SerialFrom(QWidget):
         self.serial_qthread.signal_send_data.emit(send_data)
 
 
+    def process_data(self, data):
+        self.ui.groupBox_signals.update_image(data)
+
     def slot_read_data(self, data):
         if self.ui.checkBox_timestamp.checkState():
             tm = time.strftime('%Y-%m-%d %h:%M:%S', time.localtime())
@@ -226,8 +228,42 @@ class SerialFrom(QWidget):
             TODO: fork a process to imageing using byte_data         
                   thread is too slow, porcess will be a better choice
         '''
+        # shared_matrix = multiprocessing.Array('d', data.flatten(), lock=False)
+        # shared_shape = data.shape
+
+        # 创建进程
+        # p = multiprocessing.Process(target=self.process_matrix, args=(shared_matrix, shared_shape))
+        # p.start()
+        # with multiprocessing .Pool(5) as p:
+            # p.map(self.ui.groupBox_signals.update_image, data)
+        # p = multiprocessing.Process(target=self.ui.groupBox_signals.update_image, args=(data,))
+        # p.start()
+
+        # self.ui.groupBox_signals.update_image(data)
 
         # self.ui.textEdit_recv.clear()
+
+        print('len:', len(data))
+        if self.counter % 10 == 0:
+            # start_time = time.time()
+            print(len(data))
+            self.ui.groupBox_signals.update_image(data)
+            # end_time = time.time()
+            # print("耗时: {:.2f}秒".format(end_time - start_time))
+        
+        # self.ui.groupBox_slice.plot_example()
+        
+        rand_data = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+        random_integer = random.randint(5, 8)
+        for i in range(random_integer):
+            rand_data[i] = 1
+        self.ui.groupBox_slice.update_image(rand_data)
+
+        # if self.counter % 5 == 0:
+        # self.ui.groupBox_slice.plot_data(np.random.randint(0, 256, size=(250, 250), dtype=np.uint8))
+
+        self.counter += 1
+
         array_str = np.array2string(data)
         self.ui.textEdit_recv.setPlainText(array_str)
         # self.ui.textEdit_recv.moveCursor(QTextCursor.End)

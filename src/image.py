@@ -1,6 +1,5 @@
 import numpy as np
 import krige_impl as kg
-import fibers
 import random
 import util
 
@@ -10,6 +9,12 @@ x_range = 250
 y_range = 250
 
 rand_bubble_cnt = 10
+BUBBLE_MAX_FRAMES = 10
+class FiberState:
+    GAS = 0
+    WATER = 1
+    SLUG = 2
+    BUBBLE = 3
 
 class FibersImage:
     def __init__(self, size):
@@ -42,16 +47,16 @@ class FibersImage:
        
     def compress_singals(signals):
         if util.all_in_gas(signals):
-            return fibers.FiberState.GAS
+            return FiberState.GAS
         
         if util.all_in_water(signals):
-            return fibers.FiberState.WATER
+            return FiberState.WATER
         
-        if util.max_gas_length(signals) > fibers.BUBBLE_MAX_FRAMES:
-            return fibers.FiberState.SLUG
+        if util.max_gas_length(signals) > BUBBLE_MAX_FRAMES:
+            return FiberState.SLUG
         
         else:
-            return fibers.FiberState.BUBBLE
+            return FiberState.BUBBLE
         
     # build image according signals. signals is a sequence with 0 or 1   
     def build_image(self, all_signals):

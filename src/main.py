@@ -61,7 +61,6 @@ points = np.array(
        [65, 155, 0], 
        [205, 145, 0],
        [165, 135, 0], 
-    #    [125, 125, 0], 
        [85, 115, 0], 
        [45, 105, 0], 
        [185, 95, 0], 
@@ -235,19 +234,49 @@ def demo_image_slug(seqs):
         ax1.imshow(water_mtx, origin="lower", cmap='bwr')
 
       else:
-        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], model='spherical', parameters=sep_dict, nlags=10)
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2],model='spherical', parameters=sep_dict, nlags=10,)
         mtx, _ = kg.execute('grid', gridx, gridy)
         util.set_range(mtx)
 
         ax1.imshow(mtx, origin="lower", cmap='bwr')
 
       # liner_image.imagine_layer(points, 125, mtx)
-      # slow di
-      
       # plt.show()
+        
       plt.pause(0.001)
       fig.clf()
 
+def demo_image_wave_ti(seqs):
+   x_range = 250
+   y_range = 250
+   range_step = 1
+   gridx = np.arange(0.0, x_range, range_step) #三个参数的意思：范围0.0 - 0.6 ，每隔0.1划分一个网格
+   gridy = np.arange(0.0, y_range, range_step)
+
+   x, y = np.meshgrid(gridx, gridy)
+   distance =((x - center_x)**2 + (y - center_y)**2)
+   mtx = np.zeros((250, 250))
+   water_mtx = np.zeros((250, 250))
+   water_mtx[distance > radius_square] = 0.5
+   water_mtx[0, 0] = 1
+ 
+   gui = ti.GUI('pipe slice', res = (x_range, y_range))
+
+   sep_dict = {'range':45, 'nugget':0, 'psill':2}
+   for i in range(seqs.shape[1]):
+      for j in (range(16)):
+        points[j][2] = seqs[j][i]
+ 
+      if not np.any(points[:,2]):
+        gui.set_image(water_mtx)
+      else:
+        kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10)
+        mtx, _ = kg.execute('grid', gridx, gridy)
+        mtx[distance > radius_square] = 0.5
+
+        gui.set_image(mtx.swapaxes(0, 1))
+
+      gui.show()
 
 def demo_image_slug_ti(seqs):
    x_range = 250
@@ -285,7 +314,8 @@ def demo_image_slug_ti(seqs):
 def main(): 
     start = time.perf_counter()
     # demo_image_level(demo_seqs)
-    demo_image_wave(demo_seqs)
+    # demo_image_wave(demo_seqs)
+    demo_image_wave_ti(demo_seqs)
     # demo_image_slug(slug_seqs)
     # demo_image_slug_ti(slug_seqs)
     end = time.perf_counter()
