@@ -34,62 +34,35 @@ points = np.array(
 '''
 import time
 import threading
+import pyqtgraph as pg
 
-class MatplotSignal(QWidget):
+class MatplotSignalDemo(QWidget):
     def __init__(self, parent=None):
-        super(MatplotSignal, self).__init__(parent)
+        super(MatplotSignalDemo, self).__init__(parent)
         self.init_UI()
-        self.plot_example()
+        # self.plot_example()
 
-    def init_UI(self):
+    def init_UI(self): 
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        self.fig, self.axes = plt.subplots(16, 1, figsize=(15, 15))
-        self.canvas = FigureCanvas(self.fig)
-        layout.addWidget(self.canvas)
+        self.plot_widgets = []
+        for _ in range(16):
+            plot_widget = pg.PlotWidget()
+            layout.addWidget(plot_widget)
+            self.plot_widgets.append(plot_widget)
 
-        # self.fig_left, self.axes_left = plt.subplots(8, 1, figsize=(10, 5))
-        # self.fig_right, self.axes_right = plt.subplots(8, 1, figsize=(10, 5))
-        # self.canvas_left = FigureCanvas(self.fig_left)
-        # self.canvas_right = FigureCanvas(self.fig_right)
-
-        # layout.addWidget(self.canvas_left)
-        # layout.addWidget(self.canvas_right)
+        # 生成初始数据
+        self.data = [np.random.normal(size=1024) for _ in range(16)]
+        self.x = np.arange(1024)
+        
+        # 绘制初始波形
+        self.curves = [plot_widget.plot(self.x, data) for plot_widget, data in zip(self.plot_widgets, self.data)]
 
     def plot_data(self, mtx):
-        # print(mtx)
-        start_time = time.time()
-        for i, ax in enumerate(self.axes):
-            ax.clear()
-            ax.set_ylim(-5, 5)
-
-            ax.plot(mtx[i])
-            ax.set_facecolor('black')
-
-        self.canvas.draw()
-
-        end_time = time.time()
-        print("耗时: {:.2f}秒".format(end_time - start_time))
-
-    def plot_left(self, mtx):
-        for i, ax in enumerate(self.axes_left):
-            ax.clear()
-            ax.set_ylim(-5, 5)
-            ax.plot(mtx[i])
-            ax.set_facecolor('black')
-
-        self.canvas_left.draw()
-
-
-    def plot_right(self, mtx):
-        for i, ax in enumerate(self.axes_right):
-            ax.clear()
-            ax.plot(mtx[i])
-            ax.set_facecolor('black')
-
-        self.canvas_right.draw()
-        
+        for curve, data in zip(self.curves, mtx):
+            data = data[:1024]
+            curve.setData(self.x, data)
 
     def plot_example(self):
         # Update the data with new random values
@@ -115,10 +88,91 @@ class MatplotSignal(QWidget):
         # assert(signals.shape[1] == 16)
         self.plot_data(signals)
         
-        # self.plot_left(signals[:8,])
-        # self.plot_right(signals[8:,])
-        # my_thread = threading.Thread(target=self.plot_left, args=(signals[:8,]))
-        # my_thread.start()
+
+# class MatplotSignal(QWidget):
+#     def __init__(self, parent=None):
+#         super(MatplotSignal, self).__init__(parent)
+#         self.init_UI()
+#         self.plot_example()
+
+#     def init_UI(self):
+#         layout = QVBoxLayout(self)
+#         self.setLayout(layout)
+
+#         self.fig, self.axes = plt.subplots(16, 1, figsize=(15, 15))
+#         self.canvas = FigureCanvas(self.fig)
+#         layout.addWidget(self.canvas)
+
+#         # self.fig_left, self.axes_left = plt.subplots(8, 1, figsize=(10, 5))
+#         # self.fig_right, self.axes_right = plt.subplots(8, 1, figsize=(10, 5))
+#         # self.canvas_left = FigureCanvas(self.fig_left)
+#         # self.canvas_right = FigureCanvas(self.fig_right)
+
+#         # layout.addWidget(self.canvas_left)
+#         # layout.addWidget(self.canvas_right)
+
+#     def plot_data(self, mtx):
+#         # print(mtx)
+#         start_time = time.time()
+#         for i, ax in enumerate(self.axes):
+#             ax.clear()
+#             ax.set_ylim(-5, 5)
+
+#             ax.plot(mtx[i])
+#             ax.set_facecolor('black')
+
+#         self.canvas.draw()
+
+#         end_time = time.time()
+#         print("耗时: {:.2f}秒".format(end_time - start_time))
+
+#     def plot_left(self, mtx):
+#         for i, ax in enumerate(self.axes_left):
+#             ax.clear()
+#             ax.set_ylim(-5, 5)
+#             ax.plot(mtx[i])
+#             ax.set_facecolor('black')
+
+#         self.canvas_left.draw()
+
+
+#     def plot_right(self, mtx):
+#         for i, ax in enumerate(self.axes_right):
+#             ax.clear()
+#             ax.plot(mtx[i])
+#             ax.set_facecolor('black')
+
+#         self.canvas_right.draw()
+        
+
+#     def plot_example(self):
+#         # Update the data with new random values
+#         data = [np.random.randn(100) for _ in range(16)]
+
+#         # Plot the updated data
+#         self.plot_data(data)
+
+#     '''
+#         plot signals waves on signale groupbox in label_2
+
+#         parameters
+#         --------------
+#         signals: signals is n * 16 numpy array
+#                  n maybe 600, because program will process data every 10 frames
+
+#     '''
+#     def update_image(self, signals):
+#         signals = signals.reshape(16, len(signals)>>4)
+#         # signals must be n * 16 numppy arrays
+#         # print(signals.shape[1], len(self.axes))
+#         # assert(len(signals.shape) == 2)
+#         # assert(signals.shape[1] == 16)
+#         self.plot_data(signals)
+        
+#         # self.plot_left(signals[:8,])
+#         # self.plot_right(signals[8:,])
+#         # my_thread = threading.Thread(target=self.plot_left, args=(signals[:8,]))
+#         # my_thread.start()
 
 
 import krige_impl

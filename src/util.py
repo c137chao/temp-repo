@@ -3,15 +3,6 @@ import math
 import numpy as np
 import taichi as ti
 
-ti.init(arch=ti.gpu)
-
-@ti.kernel
-def ti_binary_grid(grid : ti.types.ndarray()) -> ti.types.ndarray():
-    for i in range(grid.shape[0]):
-        for j in range(grid.shape[1]):
-            if (i-125) ** 2 + (j-125)**2 > 125**2:
-                grid[i, j] = 0.5
-
 center_x = 125
 center_y = 125
 radius_square = 125 * 125
@@ -89,16 +80,21 @@ WATER_THRESH_HOLD = 3
 BUBBLE_MAX_FRAMES = 10
 
 def all_in_gas(sequence):
-    for sig in sequence:
-        if sig < GAS_THRESH_HOLD:
-            return False
-    return True
+    return np.all(sequence > GAS_THRESH_HOLD)
+    # for sig in sequence:
+    #     if sig < GAS_THRESH_HOLD:
+    #         return False
+    # return True
 
 def all_in_water(sequence):
-    for sig in sequence:
-        if sig > WATER_THRESH_HOLD:
-            return False
-    return True
+    return np.all(sequence < WATER_THRESH_HOLD)
+    # for sig in sequence:
+    #     if sig > WATER_THRESH_HOLD:
+    #         return False
+    # return True
+
+def get_gas_sum(sequence):
+    return np.sum(sequence > GAS_THRESH_HOLD)
 
 def max_gas_length(sequence):
     ans = 0

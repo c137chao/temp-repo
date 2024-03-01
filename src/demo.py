@@ -2,6 +2,7 @@ import socket
 import time
 import pickle
 import util
+import config
 import krige_impl 
 
 import numpy as np
@@ -18,7 +19,6 @@ points = np.array(
        [65, 155, 0], 
        [205, 145, 0],
        [165, 135, 0], 
-    #    [125, 125, 0], 
        [85, 115, 0], 
        [45, 105, 0], 
        [185, 95, 0], 
