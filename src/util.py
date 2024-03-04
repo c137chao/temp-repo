@@ -63,13 +63,9 @@ def custom_dist(XA, XB, XB_vals):
     return ans
 
 
-
 def in_cycle(x, y, r):
     return math.pow(x-125, 2) + math.pow(y-125, 2) <= r*r
 
-def show_image(title, img):
-    cv2.Imshow(title, img)
-    cv2.waitKey(0)
 
 def draw_ellipsoid_3d():
     pass
