@@ -1,7 +1,6 @@
 import numpy as np
 import util
 import matplotlib.pyplot as plt
-import taichi as ti
 
 total_diff_k = 0
 total_diff_r = 0
@@ -30,6 +29,12 @@ def generate_waves():
     # wave = 10 * np.sin(x/40) + 5 * np.cos(x/100 + 3) + 5 * np.sin(x/40 + 2) + 125
 
     return all_wave
+
+def generate_slugs():
+    all_slug = []
+
+
+    return all_slug
 
 n = 250  
 
@@ -103,7 +108,6 @@ from skimage.metrics import structural_similarity as compare_ssim
 
 def my_wave_kriging(ax, cmp):
     import krige_impl
-    import cv2
 
     kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2],  nlags=10,)
     mtx_wave_krig, _ = kg.execute('grid', gridx, gridy)
@@ -123,7 +127,6 @@ def my_wave_kriging(ax, cmp):
 
     # plt.imshow(mtx_wave_krig, cmap='bwr', interpolation='nearest')
     # plt.show()
-    import cv2
     global total_diff_k 
     # cv2.GaussianBlur(mtx_wave_krig, (5, 5), 0)
     ssim = compare_ssim(mtx_wave_krig, cmp, full=False, data_range = 1)
@@ -135,7 +138,6 @@ def my_wave_kriging(ax, cmp):
 
 def rbf_insertation(ax, cmp):
     from scipy.interpolate import Rbf
-    import cv2
 
     rbf = Rbf(points[:, 0], points[:, 1], points[:, 2])
 

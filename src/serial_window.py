@@ -63,7 +63,7 @@ class SerialFrom(QWidget):
         stop = ('1', '1.5', '2')
         data = ('8', '7', '6', '5')
         check = ('None', 'Odd', 'Even')
-        frequence = ('5K', '10K', '20K', '50K')
+        frequence = ('512', '1K', '5K', '10K', '20K')
         self.ui.comboBox_baud.addItems(baud)
         self.ui.comboBox_stop.addItems(stop)
         self.ui.comboBox_data.addItems(data)
