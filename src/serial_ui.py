@@ -172,7 +172,7 @@ class Ui_Serial_Form(object):
         self.tab2.setObjectName("tab2")
         
         # multi thread
-        self.groupBox_signals = serial_plot.MatplotSignal(self.tab2)
+        self.groupBox_signals = serial_plot.MatplotSignalDemo(self.tab2)
         self.groupBox_signals.setGeometry(QtCore.QRect(10, 10, 501, 481))
         self.groupBox_signals.setObjectName("groupBox_signals")
         

@@ -2,6 +2,7 @@ import numpy as np
 import krige_impl as kg
 import random
 import util
+import config
 
 from matplotlib import pyplot as plt
 
@@ -31,6 +32,9 @@ def compress_singals(signals):
         
         else:
             return FiberState.BUBBLE
+        
+def build_image(signals):
+    return None
         
 
 def draw_a_random_bubble_on(mtx, x, y, r):
@@ -111,13 +115,13 @@ class FibersImage:
     # build image according signals. signals is a sequence with 0 or 1   
     def build_image(self, all_signals):
        index = 0
-       image_type = fibers.FiberState.NONE
+       image_type = FiberState.NONE
        for i in range(len(all_signals)): 
            state = self.compress_singals(all_signals[i])
            if state > image_type:
                image_type = state
-           if state == fibers.FiberState.BUBBLE:
-               self.bubbles.append(fibers.points[i][:1])
+           if state == FiberState.BUBBLE:
+               self.bubbles.append(config.points[i][:1])
        
        # check and image 
 

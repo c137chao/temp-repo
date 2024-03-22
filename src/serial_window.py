@@ -1,6 +1,6 @@
 import sys
 import time
-import serial_ui
+import serial_ui_ui
 import threading
 
 import numpy as np
@@ -14,11 +14,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtSerialPort import QSerialPortInfo
 
 import matplotlib
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-
-import multiprocessing
 import random
 
 matplotlib.use("Qt5Agg")  # 声明使用QT5
@@ -36,11 +31,10 @@ import krige_impl
 '''
     
 '''
-import demo
 class SerialFrom(QWidget):
     def __init__(self):
         super().__init__()
-        self.ui = serial_ui.Ui_Serial_Form()
+        self.ui = serial_ui_ui.Ui_Serial_Form()
 
         self.ui.setupUi(self)
 
@@ -75,15 +69,6 @@ class SerialFrom(QWidget):
 
         self.ui.checkBox_send_hex.stateChanged.connect(self.checkBox_hex_send)
 
-
-    # def serial_btn_connect(self):
-        # self.ui.btn_open_serial.clicked.connect(self.open_serial)
-
-        # self.ui.checkBox_rts.stateChanged.connect(self.checkBox_rts)
-        # self.ui.checkBox_rtx.stateChanged.connect(self.checkBox_rtx)
-        # self.ui.checkBox_timestamp.stateChanged.connect(self.checkBox_timestamp)
-
-        # self.ui.hex.stateChanged.connect(self.checkBox_hexsend)
 
     def qthread_init(self):
         self.qthread = QThread()
@@ -175,8 +160,16 @@ class SerialFrom(QWidget):
         self.set_parameter['comboBox_data'] = self.ui.comboBox_data.currentText()
         self.set_parameter['comboBox_freq'] = self.ui.comboBox_freq.currentText()
         self.set_parameter['comboBox_check'] = self.ui.comboBox_check.currentText()
-       
+
+        '''
+            setting period of imaging: 
+        '''
         self.serial_qthread.signal_pushbButton_open.emit(self.set_parameter)
+
+        freq = self.ui.comboBox_freq.currentText()
+        self.step = freq // 30 // 60  # 30 frame, 60 data in one packet
+
+        
 
     def pushButton_clear_recv(self):
         self.ui.textEdit_recv.clear()
@@ -196,6 +189,8 @@ class SerialFrom(QWidget):
             self.ui.btn_open_serial.setText('打开串口')
             self.timer.start(1000)
 
+    
+
     def pushButton_send(self):
         print('send data clicked')
         send_data = {}
@@ -212,6 +207,9 @@ class SerialFrom(QWidget):
     def process_data(self, data):
         self.ui.groupBox_signals.update_image(data)
 
+    '''
+        TODO: update slice image
+    '''
     def slot_read_data(self, data):
         if self.ui.checkBox_timestamp.checkState():
             tm = time.strftime('%Y-%m-%d %h:%M:%S', time.localtime())
@@ -219,7 +217,7 @@ class SerialFrom(QWidget):
             self.ui.textEdit_recv.insertPlainText(tm)
             self.ui.textEdit_recv.setTextColor(QColor(0, 0, 0))
 
-        # data is float list, can't trans too byte, TODO fIx bug here   
+        # data is float list, can't trans to byte, TODO fIx bug here   
         # byte_data = data.tobyte()
         
         # 2024-01-12: data is numpy array -> str(data)
@@ -245,13 +243,25 @@ class SerialFrom(QWidget):
 
         print('len:', len(data))
         if self.counter % 10 == 0:
-            # start_time = time.time()
             print(len(data))
             self.ui.groupBox_signals.update_image(data)
-            # end_time = time.time()
-            # print("耗时: {:.2f}秒".format(end_time - start_time))
-        
-        # self.ui.groupBox_slice.plot_example()
+            
+            self.ui.lineEdit_channel_1.setText(data[0])
+            self.ui.lineEdit_channel_2.setText(data[1])
+            self.ui.lineEdit_channel_3.setText(data[2])
+            self.ui.lineEdit_channel_4.setText(data[3])
+            self.ui.lineEdit_channel_5.setText(data[4])
+            self.ui.lineEdit_channel_6.setText(data[5])
+            self.ui.lineEdit_channel_7.setText(data[6])
+            self.ui.lineEdit_channel_8.setText(data[7])
+            self.ui.lineEdit_channel_9.setText(data[8])
+            self.ui.lineEdit_channel_10.setText(data[9])
+            self.ui.lineEdit_channel_11.setText(data[10])
+            self.ui.lineEdit_channel_12.setText(data[11])
+            self.ui.lineEdit_channel_13.setText(data[12])
+            self.ui.lineEdit_channel_14.setText(data[13])
+            self.ui.lineEdit_channel_15.setText(data[14])
+            self.ui.lineEdit_channel_16.setText(data[15])
         
         rand_data = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
         random_integer = random.randint(5, 8)
@@ -259,8 +269,6 @@ class SerialFrom(QWidget):
             rand_data[i] = 1
         self.ui.groupBox_slice.update_image(rand_data)
 
-        # if self.counter % 5 == 0:
-        # self.ui.groupBox_slice.plot_data(np.random.randint(0, 256, size=(250, 250), dtype=np.uint8))
 
         self.counter += 1
 

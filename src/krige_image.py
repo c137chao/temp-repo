@@ -4,6 +4,7 @@ import krige_impl
 from matplotlib import pyplot as plt
 
 import random
+import config
 
 x_range = 250
 y_range = 250
@@ -42,18 +43,18 @@ def image_wave(signals):
        
    for i in range(signals.shape[1]):
       for j in (range(16)):
-        fibers.points[j][2] = signals[j][i]
-      if not np.any(fibers.points[:,2]):
+        config.points[j][2] = signals[j][i]
+      if not np.any(config.points[:,2]):
         mtx = water_mtx
       else:
         # print(points)
-        kg = krige_impl.Kriging(fibers.points[:,0], fibers.points[:,1], fibers.points[:,2], nlags=10)
+        kg = krige_impl.Kriging(config.points[:,0], config.points[:,1], config.points[:,2], nlags=10)
         mtx, _ = kg.execute('grid', gridx, gridy)
 
       # slow display
       ax1 = fig.add_subplot(1, 1, 1)
       ax1.imshow(mtx, origin="lower", cmap='bwr')
-      ax1.scatter(fibers.points[:,0], fibers.points[:,1], c=fibers.points[:,2])
+      ax1.scatter(config.points[:,0], config.points[:,1], c=config.points[:,2])
       # plt.show()
       plt.pause(0.01)
       fig.clf()

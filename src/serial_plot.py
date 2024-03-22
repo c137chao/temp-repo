@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QGridLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import liner_image
@@ -33,7 +33,112 @@ points = np.array(
     it set 8*2 subfigure layout and plot signals on it when recv 
 '''
 import time
-import threading
+import pyqtgraph as pg
+
+import numpy as np
+import pyqtgraph as pg
+
+class MatplotSignalHelp(QWidget):
+    def __init__(self, parent=None):
+        super(MatplotSignalHelp, self).__init__(parent)
+        self.init_UI()
+
+    def init_UI(self): 
+        layout = QGridLayout(self)
+        self.setLayout(layout)
+
+        self.plot_widgets = []
+        for i in range(8):
+            for j in range(2):
+                plot_widget = pg.PlotWidget()
+                layout.addWidget(plot_widget, i, j)
+                self.plot_widgets.append(plot_widget)
+
+        # 生成初始数据
+        self.data = [np.random.normal(size=1024) for _ in range(16)]
+        self.x = np.arange(1024)
+
+        # 绘制初始波形
+        self.curves = [plot_widget.plot(self.x, data) for plot_widget, data in zip(self.plot_widgets, self.data)]
+
+    def plot_data(self, mtx):
+        for curve, data in zip(self.curves, mtx):
+            data = data[:1024]
+            curve.setData(self.x, data)
+
+    def plot_example(self):
+        # Update the data with new random values
+        data = [np.random.randn(100) for _ in range(16)]
+
+        # Plot the updated data
+        self.plot_data(data)
+
+    '''
+        plot signals waves on signale groupbox in label_2
+
+        parameters
+        --------------
+        signals: signals is n * 16 numpy array
+                 n maybe 600, because program will process data every 10 frames
+
+    '''
+    def update_image(self, signals):
+        signals = signals.reshape(16, len(signals) >> 4)
+        self.plot_data(signals)
+
+
+class MatplotSignalDemo(QWidget):
+    def __init__(self, parent=None):
+        super(MatplotSignalDemo, self).__init__(parent)
+        self.init_UI()
+        # self.plot_example()
+
+    def init_UI(self): 
+        layout = QVBoxLayout(self)
+        self.setLayout(layout)
+
+        self.plot_widgets = []
+        for _ in range(16):
+            plot_widget = pg.PlotWidget()
+            layout.addWidget(plot_widget)
+            self.plot_widgets.append(plot_widget)
+
+        # 生成初始数据
+        self.data = [np.random.normal(size=1024) for _ in range(16)]
+        self.x = np.arange(1024)
+
+        # 绘制初始波形
+        self.curves = [plot_widget.plot(self.x, data) for plot_widget, data in zip(self.plot_widgets, self.data)]
+
+    def plot_data(self, mtx):
+        for curve, data in zip(self.curves, mtx):
+            data = data[:1024]
+            curve.setData(self.x, data)
+
+    def plot_example(self):
+        # Update the data with new random values
+        data = [np.random.randn(100) for _ in range(16)]
+
+        # Plot the updated data
+        self.plot_data(data)
+
+    '''
+        plot signals waves on signale groupbox in label_2
+
+        parameters
+        --------------
+        signals: signals is n * 16 numpy array
+                 n maybe 600, because program will process data every 10 frames
+
+    '''
+    def update_image(self, signals):
+        signals = signals.reshape(16, len(signals)>>4)
+        # signals must be n * 16 numppy arrays
+        # print(signals.shape[1], len(self.axes))
+        # assert(len(signals.shape) == 2)
+        # assert(signals.shape[1] == 16)
+        self.plot_data(signals)
+        
 
 class MatplotSignal(QWidget):
     def __init__(self, parent=None):
@@ -125,6 +230,7 @@ import krige_impl
 import util
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtGui import QPixmap, QPainter, QImage
+from PyQt5 import QtCore
 
 x_range = 250
 y_range = 250
@@ -134,7 +240,7 @@ gridx = np.arange(0.0, x_range, range_step)
 gridy = np.arange(0.0, y_range, range_step)
 
 '''
-
+   ------------------------------------
 '''
 class MatplotSliceDemo(QWidget):
     def __init__(self, parent=None):
@@ -148,11 +254,13 @@ class MatplotSliceDemo(QWidget):
         self.setLayout(layout)
 
     def plot_data(self, mtx):
-        print(mtx.shape, sys.getsizeof(mtx.data))
+        # print(mtx.shape, sys.getsizeof(mtx.data))
         mtx = mtx.astype(np.uint8)
-        qimage = QImage(mtx.data, 250, 250, QImage.Format_Grayscale8)
+        qimage = QImage(mtx.data, mtx.shape[0], mtx.shape[1], QImage.Format_Grayscale8)
         pixmap = QPixmap.fromImage(qimage)
-        self.image_label.setPixmap(pixmap)
+        scaled_pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), aspectRatioMode=QtCore.Qt.KeepAspectRatio)
+
+        self.image_label.setPixmap(scaled_pixmap)
 
 
     def init_UI(self):
@@ -163,12 +271,14 @@ class MatplotSliceDemo(QWidget):
 
 
     def plot_example(self):
-        mtx = np.zeros((250, 250))
+        mtx = np.zeros((250, 250), dtype=np.uint8)
+    
         fibers = np.array([255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0])
         for j in (range(16)):
             points[j][2] =fibers[j]
         kg = krige_impl.Kriging(points[:,0], points[:,1], points[:,2], nlags=10)
         mtx, _ = kg.execute('grid', gridx, gridy)
+        np.set_printoptions(threshold=sys.maxsize)
         # util.set_range_uint8(mtx)
         
         self.plot_data(mtx)

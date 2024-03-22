@@ -1,5 +1,4 @@
 import numpy as np
-import taichi as ti
 import scipy.linalg
 from scipy.spatial.distance import cdist
 

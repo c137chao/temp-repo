@@ -18,10 +18,9 @@ buf_cmd_5k = b'\x00\xFD\xFD\xFD\00\xCB\x00\xC8\x00\x00\xFE\xFE\xFE\xFE'
 
 buf_cmd_4k = b'\x00\xFD\xFD\xFD\00\xCB\x00\xFa\x00\x00\xFE\xFE\xFE\xFE'
 
-buf_cmd_1k = b'\x00\xFD\xFD\xFD\00\xCB\x00\xFa\x00\x00\xFE\xFE\xFE\xFE'
+buf_cmd_1k = b'\x00\xFD\xFD\xFD\00\xCB\x01\xF4\x00\x00\xFE\xFE\xFE\xFE'
 
-buf_cmd_512 = b'\x00\xFD\xFD\xFD\00\xCB\x00\xFa\x00\x00\xFE\xFE\xFE\xFE'
-
+buf_cmd_512 = b'\x00\xFD\xFD\xFD\00\xCB\x03\xE8\x00\x00\xFE\xFE\xFE\xFE'
 
 offset = 4
 
@@ -53,7 +52,7 @@ class Serial_Qthread(QObject):
         '''
             state: 0 is unopen, 1 is opened, 2 is occupied or error
         '''
-        self.cmd = {'5K':buf_cmd_5k, '10K':buf_cmd_10k, '20K':buf_cmd_20k, '50K':buf_cmd_50k}
+        self.cmd = {'512':buf_cmd_512, '1K':buf_cmd_1k, '4K':buf_cmd_4k, '5K':buf_cmd_5k, '10K':buf_cmd_10k, '20K':buf_cmd_20k}
         self.state = 0 
         self.first_read_14 = True
         self.buffer = b""
@@ -114,8 +113,10 @@ class Serial_Qthread(QObject):
     def slot_pushbButton_open(self, parameter):
         if self.state == 0: # normal case
             print('press button open, parameter:', parameter)
+
             # set port (such as COM3)
             self.serial.setPortName(parameter['comboBox_com'])
+            
             # set baud ratio
             self.serial.setBaudRate(int(parameter['comboBox_baud']))
 
